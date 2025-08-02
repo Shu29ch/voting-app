@@ -2,7 +2,8 @@ pipeline {
   agent any
 
   environment {
-    DOCKER_IMAGE = 'shubh291998/voting-app'
+    FRONTEND_IMAGE = 'shubh291998/voting-app-frontend'
+    BACKEND_IMAGE  = 'shubh291998/voting-app-backend'
   }
 
   stages {
@@ -12,19 +13,37 @@ pipeline {
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Build Frontend Docker Image') {
       steps {
         script {
-          dockerImage = docker.build("${DOCKER_IMAGE}")
+          frontendImage = docker.build("${FRONTEND_IMAGE}", "./frontend")
         }
       }
     }
 
-    stage('Push Docker Image to Docker Hub') {
+    stage('Build Backend Docker Image') {
+      steps {
+        script {
+          backendImage = docker.build("${BACKEND_IMAGE}", "./backend")
+        }
+      }
+    }
+
+    stage('Push Frontend Image to Docker Hub') {
       steps {
         script {
           docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-            dockerImage.push('latest')
+            frontendImage.push('latest')
+          }
+        }
+      }
+    }
+
+    stage('Push Backend Image to Docker Hub') {
+      steps {
+        script {
+          docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+            backendImage.push('latest')
           }
         }
       }
