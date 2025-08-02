@@ -2,67 +2,33 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-    DOCKERHUB_REPO_BACKEND = 'yourdockerhubusername/voting-backend'
-    DOCKERHUB_REPO_FRONTEND = 'yourdockerhubusername/voting-frontend'
+    IMAGE_NAME = 'shubh291998/voting-app'
   }
 
   stages {
-    stage('Checkout') {
+    stage('Clone Repository') {
       steps {
-        git 'https://github.com/yourusername/voting-app.git'
+        git 'https://github.com/Shu29ch/voting-app.git'
       }
     }
 
-    stage('Build Backend Docker Image') {
-      steps {
-        dir('backend') {
-          script {
-            docker.build("${DOCKERHUB_REPO_BACKEND}:latest")
-          }
-        }
-      }
-    }
-
-    stage('Build Frontend Docker Image') {
-      steps {
-        dir('frontend') {
-          script {
-            docker.build("${DOCKERHUB_REPO_FRONTEND}:latest")
-          }
-        }
-      }
-    }
-
-    stage('Login to Docker Hub') {
+    stage('Build Docker Image') {
       steps {
         script {
-          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-            echo 'Logged in to Docker Hub'
-          }
+          dockerImage = docker.build("${IMAGE_NAME}")
         }
       }
     }
 
-    stage('Push Backend Image') {
+    stage('Push Docker Image to Docker Hub') {
       steps {
         script {
-          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-            docker.image("${DOCKERHUB_REPO_BACKEND}:latest").push()
-          }
-        }
-      }
-    }
-
-    stage('Push Frontend Image') {
-      steps {
-        script {
-          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-            docker.image("${DOCKERHUB_REPO_FRONTEND}:latest").push()
+          // Uses credentials stored in Jenkins with ID 'dockerhub-credentials'
+          docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+            dockerImage.push('latest')
           }
         }
       }
     }
   }
 }
-
