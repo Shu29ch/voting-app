@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'shubh291998/voting-app'
+    DOCKER_IMAGE = 'shubh291998/voting-app'
   }
 
   stages {
@@ -15,7 +15,7 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
-          dockerImage = docker.build("${IMAGE_NAME}")
+          dockerImage = docker.build("${DOCKER_IMAGE}")
         }
       }
     }
@@ -23,7 +23,6 @@ pipeline {
     stage('Push Docker Image to Docker Hub') {
       steps {
         script {
-          // Uses credentials stored in Jenkins with ID 'dockerhub-credentials'
           docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
             dockerImage.push('latest')
           }
